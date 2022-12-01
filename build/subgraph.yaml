@@ -2,7 +2,7 @@ specVersion: 0.0.2
 description: Gravatar for Ethereum
 repository: https://github.com/graphprotocol/example-subgraphs
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: UbeGrants
@@ -22,7 +22,7 @@ dataSources:
         - OwnershipTransferred
       abis:
         - name: UbeGrants
-          file: ./abis/UbeGrants.json
+          file: UbeGrants/abis/UbeGrants.json
       eventHandlers:
         - event: GrantCreated(uint256,uint256[],address,string)
           handler: handleGrantCreated
@@ -34,4 +34,4 @@ dataSources:
           handler: handleGrantMilestoneApplied
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-      file: ./src/mapping.ts
+      file: UbeGrants/UbeGrants.wasm

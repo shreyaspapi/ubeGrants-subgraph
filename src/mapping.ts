@@ -4,58 +4,74 @@ import {
   GrantCreated,
   GrantMilestone,
   GrantState,
-  OwnershipTransferred
+  OwnershipTransferred,
+  GrantMilestoneApplied
 } from "../generated/UbeGrants/UbeGrants"
-import { ExampleEntity } from "../generated/schema"
+import { Grant, ContractOwner, GrantMilestoneDelivery } from "../generated/schema"
 
 export function handleGrantCreated(event: GrantCreated): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  let evParams = event.params
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+  let grant = new Grant(evParams.grantId.toString())
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+  grant.grantId = evParams.grantId
+  grant.state = new BigInt(0)
+  grant.ipfs = evParams.ipfsHash
+  grant.grantee = evParams.creator
+  grant.milestoneAmounts = evParams.milestoneAmounts
+  grant.block = event.block.number
+  grant.milestoneDeliveries = new Array<string>()
+  grant.time = event.block.timestamp
+  grant.nextPayout = new BigInt(0)
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.grantId = event.params.grantId
-  entity.milestoneAmounts = event.params.milestoneAmounts
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.daoMultisig(...)
-  // - contract.getGrant(...)
-  // - contract.grants(...)
-  // - contract.owner(...)
-  // - contract.ubeTokenAddress(...)
+  grant.save()
 }
 
-export function handleGrantMilestone(event: GrantMilestone): void {}
+export function handleGrantMilestoneApplied(event: GrantMilestoneApplied): void {
+  let evParams = event.params
+  
+  let grant = Grant.load(event.params.grantId.toString())!
 
-export function handleGrantState(event: GrantState): void {}
+  let deliver = new GrantMilestoneDelivery(evParams.ipfsHash.toString())
+  deliver.ipfsHash = evParams.ipfsHash
+  deliver.approved = false
+  deliver.time = event.block.timestamp
+  deliver.save()
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+  grant.milestoneDeliveries.push(deliver.id)
+  grant.save()
+}
+
+export function handleGrantMilestone(event: GrantMilestone): void {
+  let evParams = event.params
+
+  let grant = Grant.load(evParams.grantId.toString())!
+  let deliver = GrantMilestoneDelivery.load(evParams.ipfsHash.toString())!
+  
+  if (evParams.approved) {
+    grant.nextPayout = grant.nextPayout.plus(new BigInt(1))
+    deliver.approved = true
+  }
+
+  deliver.save()
+  grant.save()
+}
+
+export function handleGrantState(event: GrantState): void {
+  let evParams = event.params
+
+  let grant = Grant.load(evParams.grantId.toString())!
+  grant.state = evParams.state
+  
+  grant.save()
+}
+
+export function handleOwnershipTransferred(event: OwnershipTransferred): void {
+  let evParams = event.params
+
+  let contractOwner = new ContractOwner(event.transaction.hash.toHexString())
+  contractOwner.contract = event.address
+  contractOwner.owner = evParams.newOwner
+  contractOwner.block = event.block.number
+  contractOwner.time = event.block.timestamp
+}
