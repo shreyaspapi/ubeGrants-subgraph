@@ -3,6 +3,7 @@ type GrantMilestoneDelivery @entity {
   ipfsHash: String!
   approved: Boolean!
   time: BigInt!
+  grant: Grant!
 }
 
 type Grant @entity {
@@ -12,11 +13,12 @@ type Grant @entity {
   ipfs: String
   grantee: Bytes
   milestoneAmounts: [BigInt!] # uint256[]
-  milestoneDeliveries: [GrantMilestoneDelivery]!
+  milestoneDeliveries: [GrantMilestoneDelivery!] @derivedFrom(field: "grant")
   nextPayout: BigInt!
   time: BigInt!
   block: BigInt!
 }
+
 
 type ContractOwner @entity (immutable: true) {
   id: ID!

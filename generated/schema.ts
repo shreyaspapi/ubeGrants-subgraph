@@ -74,6 +74,15 @@ export class GrantMilestoneDelivery extends Entity {
   set time(value: BigInt) {
     this.set("time", Value.fromBigInt(value));
   }
+
+  get grant(): string {
+    let value = this.get("grant");
+    return value.toString();
+  }
+
+  set grant(value: string) {
+    this.set("grant", Value.fromString(value));
+  }
 }
 
 export class Grant extends Entity {
@@ -186,13 +195,24 @@ export class Grant extends Entity {
     }
   }
 
-  get milestoneDeliveries(): Array<string | null> {
+  get milestoneDeliveries(): Array<string> | null {
     let value = this.get("milestoneDeliveries");
-    return value.toStringArray();
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
   }
 
-  set milestoneDeliveries(value: Array<string | null>) {
-    this.set("milestoneDeliveries", Value.fromStringArray(value));
+  set milestoneDeliveries(value: Array<string> | null) {
+    if (value === null) {
+      this.unset("milestoneDeliveries");
+    } else {
+      this.set(
+        "milestoneDeliveries",
+        Value.fromStringArray(value as Array<string>)
+      );
+    }
   }
 
   get nextPayout(): BigInt {

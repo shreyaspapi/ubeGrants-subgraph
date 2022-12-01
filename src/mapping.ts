@@ -20,7 +20,6 @@ export function handleGrantCreated(event: GrantCreated): void {
   grant.grantee = evParams.creator
   grant.milestoneAmounts = evParams.milestoneAmounts
   grant.block = event.block.number
-  grant.milestoneDeliveries = new Array<string>()
   grant.time = event.block.timestamp
   grant.nextPayout = new BigInt(0)
 
@@ -32,14 +31,13 @@ export function handleGrantMilestoneApplied(event: GrantMilestoneApplied): void 
   
   let grant = Grant.load(event.params.grantId.toString())!
 
-  let deliver = new GrantMilestoneDelivery(evParams.ipfsHash.toString())
+  let deliver = new GrantMilestoneDelivery(evParams.grantId.toHexString() + "-" + event.block.timestamp.toString())
   deliver.ipfsHash = evParams.ipfsHash
   deliver.approved = false
   deliver.time = event.block.timestamp
+  deliver.grant = grant.id.toString()
   deliver.save()
 
-  grant.milestoneDeliveries.push(deliver.id)
-  grant.save()
 }
 
 export function handleGrantMilestone(event: GrantMilestone): void {
@@ -74,4 +72,6 @@ export function handleOwnershipTransferred(event: OwnershipTransferred): void {
   contractOwner.owner = evParams.newOwner
   contractOwner.block = event.block.number
   contractOwner.time = event.block.timestamp
+
+  contractOwner.save()
 }
