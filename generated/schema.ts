@@ -57,13 +57,13 @@ export class GrantMilestoneDelivery extends Entity {
     this.set("ipfsHash", Value.fromString(value));
   }
 
-  get approved(): boolean {
-    let value = this.get("approved");
-    return value.toBoolean();
+  get state(): BigInt {
+    let value = this.get("state");
+    return value.toBigInt();
   }
 
-  set approved(value: boolean) {
-    this.set("approved", Value.fromBoolean(value));
+  set state(value: BigInt) {
+    this.set("state", Value.fromBigInt(value));
   }
 
   get time(): BigInt {

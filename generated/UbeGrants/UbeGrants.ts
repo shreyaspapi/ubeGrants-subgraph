@@ -40,40 +40,6 @@ export class GrantCreated__Params {
   }
 }
 
-export class GrantMilestone extends ethereum.Event {
-  get params(): GrantMilestone__Params {
-    return new GrantMilestone__Params(this);
-  }
-}
-
-export class GrantMilestone__Params {
-  _event: GrantMilestone;
-
-  constructor(event: GrantMilestone) {
-    this._event = event;
-  }
-
-  get grantId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get milestoneId(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-
-  get amount(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
-  }
-
-  get ipfsHash(): string {
-    return this._event.parameters[3].value.toString();
-  }
-
-  get approved(): boolean {
-    return this._event.parameters[4].value.toBoolean();
-  }
-}
-
 export class GrantMilestoneApplied extends ethereum.Event {
   get params(): GrantMilestoneApplied__Params {
     return new GrantMilestoneApplied__Params(this);
@@ -100,16 +66,50 @@ export class GrantMilestoneApplied__Params {
   }
 }
 
-export class GrantState extends ethereum.Event {
-  get params(): GrantState__Params {
-    return new GrantState__Params(this);
+export class GrantMilestoneStatus extends ethereum.Event {
+  get params(): GrantMilestoneStatus__Params {
+    return new GrantMilestoneStatus__Params(this);
   }
 }
 
-export class GrantState__Params {
-  _event: GrantState;
+export class GrantMilestoneStatus__Params {
+  _event: GrantMilestoneStatus;
 
-  constructor(event: GrantState) {
+  constructor(event: GrantMilestoneStatus) {
+    this._event = event;
+  }
+
+  get grantId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get milestoneId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get ipfsHash(): string {
+    return this._event.parameters[3].value.toString();
+  }
+
+  get approved(): boolean {
+    return this._event.parameters[4].value.toBoolean();
+  }
+}
+
+export class GrantStateChanged extends ethereum.Event {
+  get params(): GrantStateChanged__Params {
+    return new GrantStateChanged__Params(this);
+  }
+}
+
+export class GrantStateChanged__Params {
+  _event: GrantStateChanged;
+
+  constructor(event: GrantStateChanged) {
     this._event = event;
   }
 
@@ -172,10 +172,6 @@ export class UbeGrants__getGrantResultValue0Struct extends ethereum.Tuple {
   get milestoneAmounts(): Array<BigInt> {
     return this[6].toBigIntArray();
   }
-
-  get milestoneDeliveries(): Array<string> {
-    return this[7].toStringArray();
-  }
 }
 
 export class UbeGrants__grantsResult {
@@ -217,6 +213,29 @@ export class UbeGrants__grantsResult {
   }
 }
 
+export class UbeGrants__grantToMilestonesResult {
+  value0: string;
+  value1: BigInt;
+  value2: i32;
+
+  constructor(value0: string, value1: BigInt, value2: i32) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromString(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set(
+      "value2",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value2))
+    );
+    return map;
+  }
+}
+
 export class UbeGrants extends ethereum.SmartContract {
   static bind(address: Address): UbeGrants {
     return new UbeGrants("UbeGrants", address);
@@ -240,7 +259,7 @@ export class UbeGrants extends ethereum.SmartContract {
   getGrant(grantId: BigInt): UbeGrants__getGrantResultValue0Struct {
     let result = super.call(
       "getGrant",
-      "getGrant(uint256):((uint256,address,string,uint8,uint256,uint256,uint256[],string[]))",
+      "getGrant(uint256):((uint256,address,string,uint8,uint256,uint256,uint256[]))",
       [ethereum.Value.fromUnsignedBigInt(grantId)]
     );
 
@@ -252,7 +271,7 @@ export class UbeGrants extends ethereum.SmartContract {
   ): ethereum.CallResult<UbeGrants__getGrantResultValue0Struct> {
     let result = super.tryCall(
       "getGrant",
-      "getGrant(uint256):((uint256,address,string,uint8,uint256,uint256,uint256[],string[]))",
+      "getGrant(uint256):((uint256,address,string,uint8,uint256,uint256,uint256[]))",
       [ethereum.Value.fromUnsignedBigInt(grantId)]
     );
     if (result.reverted) {
@@ -303,6 +322,51 @@ export class UbeGrants extends ethereum.SmartContract {
     );
   }
 
+  grantToMilestones(
+    param0: BigInt,
+    param1: BigInt
+  ): UbeGrants__grantToMilestonesResult {
+    let result = super.call(
+      "grantToMilestones",
+      "grantToMilestones(uint256,uint256):(string,uint256,uint8)",
+      [
+        ethereum.Value.fromUnsignedBigInt(param0),
+        ethereum.Value.fromUnsignedBigInt(param1)
+      ]
+    );
+
+    return new UbeGrants__grantToMilestonesResult(
+      result[0].toString(),
+      result[1].toBigInt(),
+      result[2].toI32()
+    );
+  }
+
+  try_grantToMilestones(
+    param0: BigInt,
+    param1: BigInt
+  ): ethereum.CallResult<UbeGrants__grantToMilestonesResult> {
+    let result = super.tryCall(
+      "grantToMilestones",
+      "grantToMilestones(uint256,uint256):(string,uint256,uint8)",
+      [
+        ethereum.Value.fromUnsignedBigInt(param0),
+        ethereum.Value.fromUnsignedBigInt(param1)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new UbeGrants__grantToMilestonesResult(
+        value[0].toString(),
+        value[1].toBigInt(),
+        value[2].toI32()
+      )
+    );
+  }
+
   owner(): Address {
     let result = super.call("owner", "owner():(address)", []);
 
@@ -339,40 +403,6 @@ export class UbeGrants extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
-  }
-}
-
-export class ConstructorCall extends ethereum.Call {
-  get inputs(): ConstructorCall__Inputs {
-    return new ConstructorCall__Inputs(this);
-  }
-
-  get outputs(): ConstructorCall__Outputs {
-    return new ConstructorCall__Outputs(this);
-  }
-}
-
-export class ConstructorCall__Inputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-
-  get _daoMultisig(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get _ubeTokenAddress(): Address {
-    return this._call.inputValues[1].value.toAddress();
-  }
-}
-
-export class ConstructorCall__Outputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
   }
 }
 
@@ -499,8 +529,12 @@ export class ApproveOrRejectMilestoneCall__Inputs {
     return this._call.inputValues[0].value.toBigInt();
   }
 
+  get milestoneId(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
   get approve(): boolean {
-    return this._call.inputValues[1].value.toBoolean();
+    return this._call.inputValues[2].value.toBoolean();
   }
 }
 
@@ -568,6 +602,40 @@ export class ChangeDaoAddressCall__Outputs {
   _call: ChangeDaoAddressCall;
 
   constructor(call: ChangeDaoAddressCall) {
+    this._call = call;
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+
+  get _daoMultisig(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get _ubeTokenAddress(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
     this._call = call;
   }
 }
