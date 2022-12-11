@@ -1,7 +1,7 @@
 type GrantMilestoneDelivery @entity {
   id: ID!
   ipfsHash: String!
-  state: BigInt!
+  state: Boolean
   time: BigInt!
   grant: Grant!
 }

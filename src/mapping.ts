@@ -40,30 +40,33 @@ export function handleGrantMilestoneApplied(event: GrantMilestoneApplied): void 
   
   let grant = Grant.load(evParams.grantId.toString())!
 
-  let deliver = new GrantMilestoneDelivery(evParams.grantId.toHexString() + "-" + evParams.milestoneId.toString())
+  let deliver = new GrantMilestoneDelivery(evParams.grantId.toString() + "-" + evParams.milestoneId.toString())
   deliver.ipfsHash = evParams.ipfsHash
-  deliver.state = new BigInt(0)
   deliver.time = event.block.timestamp
   deliver.grant = grant.id.toString()
   deliver.save()
-
 }
 
 export function handleGrantMilestoneStatus(event: GrantMilestoneStatus): void {
   let evParams = event.params
 
-  let grant = Grant.load(evParams.grantId.toString())!
-  let deliver = GrantMilestoneDelivery.load(evParams.grantId.toString() + "-" + evParams.milestoneId.toString())!
-  
-  if (evParams.approved) {
-    grant.nextPayout = grant.nextPayout.plus(new BigInt(1))
-    grant.state = new BigInt(1)
-  } else {
-    grant.state = new BigInt(2)
-  }
+  let deliverId = evParams.grantId.toString() + "-" + evParams.milestoneId.toString()
 
-  deliver.save()
+  let grant = Grant.load(evParams.grantId.toString())!
+  let one = new BigInt(1)
+
+  if (evParams.approved === true) {
+    grant.nextPayout = grant.nextPayout.plus(one)
+  }
+  
+  let deliver = GrantMilestoneDelivery.load(deliverId)!
+  
+  let two = new BigInt(2)
+  
+  deliver.state = evParams.approved
+  
   grant.save()
+  deliver.save()
 }
 
 
