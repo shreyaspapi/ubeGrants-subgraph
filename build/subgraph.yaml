@@ -27,7 +27,7 @@ dataSources:
         - event: GrantCreated(uint256,uint256[],address,string)
           handler: handleGrantCreated
         - event: GrantStateChanged(uint256,uint256)
-          handler: handleGrantState
+          handler: handleGrantStateChanged
         - event: GrantMilestoneStatus(uint256,uint256,uint256,string,bool)
           handler: handleGrantMilestoneStatus
         - event: GrantMilestoneApplied(uint256,uint256,string)
